@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation Financière Indépendant</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Simulation Financière</h1>
+
+        <!-- Onglets de navigation -->
+        <div class="tab">
+            <button class="tablink active" onclick="openTab(event, 'simulation')">Simulation</button>
+            <button class="tablink" onclick="openTab(event, 'parametres')">Paramètres</button>
+            <button class="tablink" onclick="openTab(event, 'demarches')">Démarches</button>
+        </div>
+
+        <!-- Section Simulation -->
+        <div id="simulation" class="tabcontent active">
+            <h2>Simulation</h2>
+            <label for="tarif">Tarif horaire (€)</label>
+            <input type="number" id="tarif" placeholder="Entrez le tarif horaire" required>
+
+            <label for="heures">Nombre d'heures par semaine</label>
+            <input type="number" id="heures" placeholder="Entrez les heures par semaine" required>
+
+            <label for="frais">Frais professionnels annuels (€)</label>
+            <input type="number" id="frais" placeholder="Entrez les frais annuels" required>
+
+            <button onclick="calculer()">Calculer</button>
+
+            <div id="resultat" class="result"></div>
+        </div>
+
+        <!-- Section Paramètres -->
+        <div id="parametres" class="tabcontent">
+            <h2>Paramètres des taux d'imposition</h2>
+            <label for="taux1">Taux d'imposition tranche 1 (de 0,01 à 15 200 €)</label>
+            <input type="number" id="taux1" value="25" placeholder="Taux tranche 1 (%)" required>
+
+            <label for="taux2">Taux d'imposition tranche 2 (de 15 200 € à 26 830 €)</label>
+            <input type="number" id="taux2" value="40" placeholder="Taux tranche 2 (%)" required>
+
+            <label for="taux3">Taux d'imposition tranche 3 (de 26 830 € à 46 440 €)</label>
+            <input type="number" id="taux3" value="45" placeholder="Taux tranche 3 (%)" required>
+
+            <label for="taux4">Taux d'imposition tranche 4 (plus de 46 440 €)</label>
+            <input type="number" id="taux4" value="50" placeholder="Taux tranche 4 (%)" required>
+
+            <button onclick="sauvegarderParametres()">Sauvegarder les paramètres</button>
+        </div>
+
+        <!-- Section Démarches -->
+        <div id="demarches" class="tabcontent">
+            <h2>Démarches pour devenir indépendant en Belgique</h2>
+            <ol>
+                <li><strong>Vérifier les conditions :</strong> Avoir au moins 18 ans et ne pas être interdit d'exercer une activité commerciale.</li>
+                <li><strong>Formation en gestion de base :</strong> Si vous n'avez pas de diplôme attestant vos compétences en gestion (ou équivalent), vous devez suivre une formation de gestion reconnue.</li>
+                <li><strong>Choisir la forme juridique :</strong> 
+                    <ul>
+                        <li>**Indépendant en personne physique** : Aucune obligation de passer par un notaire.</li>
+                        <li>**Créer une société** (ex : SRL) : Passage obligatoire devant un notaire pour la rédaction des statuts.</li>
+                    </ul>
+                </li>
+                <li><strong>Ouverture d'un compte bancaire professionnel :</strong> Obligatoire pour les indépendants. Vous devez avoir un compte bancaire dédié à l’activité professionnelle.</li>
+                <li><strong>Inscription à la Banque-Carrefour des Entreprises (BCE) :</strong> Vous devez demander votre numéro d'entreprise auprès d'un guichet d'entreprises agréé. Ce numéro servira d’identifiant pour toutes vos démarches.</li>
+                <li><strong>Demande du numéro de TVA :</strong> Si vous exercez une activité soumise à la TVA, vous devez demander un numéro de TVA via un guichet d'entreprises.</li>
+                <li><strong>Affiliation à une caisse d'assurances sociales :</strong> Obligatoire pour payer vos cotisations sociales trimestrielles. Il est conseillé de choisir une caisse d’assurances sociales dès que possible.</li>
+                <li><strong>Affiliation à une mutuelle :</strong> Obligatoire pour bénéficier de la couverture soins de santé. Si vous êtes déjà affilié en tant que salarié, informez votre mutuelle du changement de statut.</li>
+                <li><strong>Assurance responsabilité civile professionnelle :</strong> Bien que facultative, elle est recommandée pour protéger votre activité en cas de litiges ou de dommages causés à un tiers.</li>
+                <li><strong>Premiers contrats et facturation :</strong> Une fois ces démarches effectuées, vous pouvez commencer votre activité, émettre des factures et gérer vos clients.</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Par défaut, les taux sont ceux mis à jour
+        var tauxImpot1 = 25;
+        var tauxImpot2 = 40;
+        var tauxImpot3 = 45;
+        var tauxImpot4 = 50;
+
+        // Fonction pour calculer la simulation
+        function calculer() {
+            // Récupération des valeurs
+            var tarifHoraire = parseFloat(document.getElementById("tarif").value);
+            var heuresParSemaine = parseFloat(document.getElementById("heures").value);
+            var fraisProfessionnels = parseFloat(document.getElementById("frais").value);
+
+            if (isNaN(tarifHoraire) || isNaN(heuresParSemaine) || isNaN(fraisProfessionnels)) {
+                alert("Veuillez entrer des valeurs valides pour tous les champs.");
+                return;
+            }
+
+            // Hypothèses et constants
+            const semainesParAn = 52;
+            const tauxCotisationSociale = 0.205; // 20,5% de cotisation sociale
+            const seuilImpots1 = 15200;
+            const seuilImpots2 = 26830;
+            const seuilImpots3 = 46440;
+
+            // Calcul du chiffre d'affaires annuel
+            var chiffreAffairesAnnuel = tarifHoraire * heuresParSemaine * semainesParAn;
+
+            // Calcul du revenu net avant cotisations
+            var revenuNetAvantCotisations = chiffreAffairesAnnuel - fraisProfessionnels;
+
+            // Calcul des cotisations sociales
+            var cotisationsSociales = revenuNetAvantCotisations * tauxCotisationSociale;
+
+            // Revenu net imposable après cotisations
+            var revenuImposable = revenuNetAvantCotisations - cotisationsSociales;
+
+            // Calcul de l'impôt sur le revenu
+            var impots = 0;
+            if (revenuImposable <= seuilImpots1) {
+                impots = revenuImposable * (tauxImpot1 / 100);
+            } else if (revenuImposable <= seuilImpots2) {
+                impots = seuilImpots1 * (tauxImpot1 / 100) + (revenuImposable - seuilImpots1) * (tauxImpot2 / 100);
+            } else if (revenuImposable <= seuilImpots3) {
+                impots = seuilImpots1 * (tauxImpot1 / 100) + (seuilImpots2 - seuilImpots1) * (tauxImpot2 / 100) + (revenuImposable - seuilImpots2) * (tauxImpot3 / 100);
+            } else {
+                impots = seuilImpots1 * (tauxImpot1 / 100) + (seuilImpots2 - seuilImpots1) * (tauxImpot2 / 100) + (seuilImpots3 - seuilImpots2) * (tauxImpot3 / 100) + (revenuImposable - seuilImpots3) * (tauxImpot4 / 100);
+            }
+
+            // Revenu net final
+            var revenuNetFinal = revenuImposable - impots;
+
+            // Affichage des résultats
+            document.getElementById("resultat").innerHTML = `
+                <h3>Résultats de la simulation :</h3>
+                <p>Chiffre d'affaires annuel : <strong>${chiffreAffairesAnnuel.toFixed(2)} €</strong></p>
+                <p>Revenu net avant cotisations : <strong>${revenuNetAvantCotisations.toFixed(2)} €</strong></p>
+                <p>Cotisations sociales (20,5%) : <strong>${cotisationsSociales.toFixed(2)} €</strong></p>
+                <p>Revenu net imposable : <strong>${revenuImposable.toFixed(2)} €</strong></p>
+                <p>Impôt sur le revenu : <strong>${impots.toFixed(2)} €</strong></p>
+                <p>Revenu net après impôts et cotisations : <strong>${revenuNetFinal.toFixed(2)} €</strong></p>
+                <p>Revenu net mensuel : <strong>${(revenuNetFinal / 12).toFixed(2)} €</strong></p>
+            `;
+        }
+
+        // Fonction pour sauvegarder les paramètres
+        function sauvegarderParametres() {
+            tauxImpot1 = parseFloat(document.getElementById("taux1").value);
+            tauxImpot2 = parseFloat(document.getElementById("taux2").value);
+            tauxImpot3 = parseFloat(document.getElementById("taux3").value);
+            tauxImpot4 = parseFloat(document.getElementById("taux4").value);
+
+            alert("Les taux d'imposition ont été mis à jour.");
+        }
+
+        // Fonction pour basculer entre les onglets
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tablink");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.className += " active";
+        }
+    </script>
+</body>
+</html>
